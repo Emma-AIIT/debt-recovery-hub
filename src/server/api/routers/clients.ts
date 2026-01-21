@@ -1,0 +1,93 @@
+import { z } from "zod";
+import { createTRPCRouter, publicProcedure } from "../trpc";
+import { createClient } from "@/lib/supabase/server";
+
+export const clientsRouter = createTRPCRouter({
+  getAll: publicProcedure
+    .input(
+      z.object({
+        status: z.enum(['all', 'current', 'warning', 'critical', 'suspended']).optional(),
+        search: z.string().optional(),
+      })
+    )
+    .query(async ({ input }) => {
+      const supabase = await createClient();
+      
+      let query = supabase
+        .from('clients')
+        .select('*')
+        .order('streak_weeks', { ascending: false });
+
+      if (input.status && input.status !== 'all') {
+        query = query.eq('status', input.status);
+      }
+
+      if (input.search) {
+        query = query.or(`name.ilike.%${input.search}%,company.ilike.%${input.search}%,email.ilike.%${input.search}%`);
+      }
+
+      const { data, error } = await query;
+      
+      if (error) throw error;
+      return data;
+    }),
+
+  getStats: publicProcedure.query(async () => {
+    const supabase = await createClient();
+    
+    const { data: clients } = await supabase.from('clients').select('*');
+    
+    if (!clients) return null;
+
+    const totalOutstanding = clients.reduce((sum, c) => sum + Number(c.current_balance), 0);
+    const totalClients = clients.length;
+    const atRisk = clients.filter(c => c.streak_weeks >= 1 && c.streak_weeks <= 2).length;
+    const suspended = clients.filter(c => c.status === 'suspended').length;
+    
+    // Calculate collection rate (simplified)
+    const paidClients = clients.filter(c => c.current_balance < c.previous_balance).length;
+    const collectionRate = totalClients > 0 ? (paidClients / totalClients) * 100 : 0;
+
+    return {
+      totalOutstanding,
+      totalClients,
+      atRisk,
+      suspended,
+      collectionRate,
+    };
+  }),
+
+  getById: publicProcedure
+    .input(z.object({ id: z.string().uuid() }))
+    .query(async ({ input }) => {
+      const supabase = await createClient();
+
+      const { data, error } = await supabase
+        .from('clients')
+        .select(`
+          *,
+          activity_log (
+            id,
+            client_id,
+            activity_type,
+            outcome,
+            recording_url,
+            notes,
+            created_at
+          ),
+          weekly_snapshots (
+            id,
+            client_id,
+            week_start,
+            balance,
+            payment_made,
+            created_at
+          )
+        `)
+        .eq('id', input.id)
+        .single();
+
+      if (error) throw error;
+      return data;
+    }),
+});

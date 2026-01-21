@@ -1,0 +1,42 @@
+export type Client = {
+    id: string
+    xero_contact_id: string
+    name: string
+    email: string
+    phone: string | null
+    company: string | null
+    current_balance: number
+    previous_balance: number
+    streak_weeks: number
+    status: 'current' | 'warning' | 'critical' | 'suspended'
+    last_payment_date: string | null
+    last_contact_date: string | null
+    last_call_outcome: string | null
+    created_at: string
+    updated_at: string
+}
+
+export type WeeklySnapshot = {
+    id: string
+    client_id: string
+    week_start: string
+    balance: number
+    payment_made: boolean
+    created_at: string
+}
+
+export type ActivityLog = {
+    id: string
+    client_id: string
+    activity_type: 'call' | 'sms' | 'email' | 'payment' | 'suspension'
+    outcome: string | null
+    recording_url: string | null
+    notes: string | null
+    created_at: string
+}
+
+// Client with relations (for detail views)
+export type ClientWithRelations = Client & {
+    activity_log: ActivityLog[]
+    weekly_snapshots: WeeklySnapshot[]
+}

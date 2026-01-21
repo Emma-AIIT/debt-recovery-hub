@@ -33,6 +33,14 @@ export default tseslint.config(
         "error",
         { checksVoidReturn: { attributes: false } },
       ],
+      // Supabase returns untyped data - these rules are too strict for dynamic DB queries
+      "@typescript-eslint/no-unsafe-assignment": "off",
+      "@typescript-eslint/no-unsafe-member-access": "off",
+      "@typescript-eslint/no-unsafe-argument": "off",
+      "@typescript-eslint/no-unsafe-return": "off",
+      "@typescript-eslint/no-unsafe-call": "off",
+      // Allow || for boolean expressions where it's appropriate
+      "@typescript-eslint/prefer-nullish-coalescing": "off",
     },
   },
   {

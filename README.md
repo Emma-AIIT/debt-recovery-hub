@@ -1,19 +1,42 @@
-# Create T3 App
+# Debt Recovery Hub
 
-This is a [T3 Stack](https://create.t3.gg/) project bootstrapped with `create-t3-app`.
+A professional debt collection management dashboard built with the T3 Stack and Supabase.
 
-## What's next? How do I make an app with this?
+## Setup
 
-We try to keep this project as simple as possible, so you can start with just the scaffolding we set up for you, and add additional things later when they become necessary.
+### 1. Environment Variables
 
-If you are not familiar with the different technologies used in this project, please refer to the respective docs. If you still are in the wind, please join our [Discord](https://t3.gg/discord) and ask for help.
+Create a `.env` file in the root directory with the following variables:
+
+```env
+# Supabase Configuration
+# Get these values from your Supabase project settings:
+# https://supabase.com/dashboard/project/_/settings/api
+
+NEXT_PUBLIC_SUPABASE_URL=your-project-url-here
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key-here
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key-here
+```
+
+### 2. Install Dependencies
+
+```bash
+npm install
+```
+
+### 3. Run Development Server
+
+```bash
+npm run dev
+```
+
+## Tech Stack
 
 - [Next.js](https://nextjs.org)
-- [NextAuth.js](https://next-auth.js.org)
-- [Prisma](https://prisma.io)
-- [Drizzle](https://orm.drizzle.team)
+- [Supabase](https://supabase.com)
 - [Tailwind CSS](https://tailwindcss.com)
 - [tRPC](https://trpc.io)
+- [TypeScript](https://www.typescriptlang.org/)
 
 ## Learn More
 
