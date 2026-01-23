@@ -1,6 +1,7 @@
 import { postRouter } from "~/server/api/routers/post";
 import { clientsRouter } from "~/server/api/routers/clients";
 import { webhooksRouter } from "~/server/api/routers/webhooks";
+import { syncRouter } from "~/server/api/routers/sync";
 import { createCallerFactory, createTRPCRouter } from "~/server/api/trpc";
 
 /**
@@ -12,6 +13,7 @@ export const appRouter = createTRPCRouter({
   post: postRouter,
   clients: clientsRouter,
   webhooks: webhooksRouter,
+  sync: syncRouter,
 });
 
 // export type definition of API

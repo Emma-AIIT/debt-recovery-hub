@@ -6,6 +6,7 @@ import { StatsCard } from '@/components/dashboard/StatsCard';
 import { ClientTable } from '@/components/dashboard/ClientTable';
 import { ClientDetailDrawer } from '@/components/dashboard/ClientDetailDrawer';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
+import { SyncButton } from '@/components/dashboard/SyncButton';
 import { format } from 'date-fns';
 
 export default function HomePage() {
@@ -84,24 +85,11 @@ export default function HomePage() {
                 </p>
               </div>
               <div className="flex items-center gap-3">
-                {/* Last sync indicator */}
-                <div className="hidden md:flex items-center gap-2 text-xs text-[var(--color-text-faint)]">
-                  <span>Last sync: Today, 9:00 AM</span>
-                </div>
-
                 {/* Theme Toggle */}
                 <ThemeToggle />
 
                 {/* Sync Button */}
-                <button className="group relative px-5 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white font-medium text-sm transition-all duration-300 shadow-lg shadow-blue-500/20 hover:shadow-blue-500/30">
-                  <span className="flex items-center gap-2">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="group-hover:rotate-180 transition-transform duration-500">
-                      <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8" />
-                      <path d="M21 3v5h-5" />
-                    </svg>
-                    Sync Xero
-                  </span>
-                </button>
+                <SyncButton />
               </div>
             </header>
 
