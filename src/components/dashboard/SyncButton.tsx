@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { api } from '@/trpc/react';
+import { createClient } from '@/lib/supabase/client';
 import { formatDistanceToNow } from 'date-fns';
 import toast from 'react-hot-toast';
 
@@ -9,26 +10,23 @@ const LAST_SYNC_KEY = 'xero_last_sync_timestamp';
 
 export function SyncButton() {
   const [lastSync, setLastSync] = useState<Date | null>(null);
-  const [isPolling, setIsPolling] = useState(false);
-  const [syncStartTime, setSyncStartTime] = useState<Date | null>(null);
-
-  // Query for last sync timestamp
-  const { data: syncData } = api.sync.getLastSync.useQuery(undefined, {
-    refetchInterval: isPolling ? 10000 : false, // Poll every 10 seconds when syncing
-  });
+  const [isSyncing, setIsSyncing] = useState(false);
+  const channelRef = useRef<ReturnType<ReturnType<typeof createClient>['channel']> | null>(null);
 
   const triggerSync = api.sync.trigger.useMutation({
     onSuccess: () => {
-      const now = new Date();
-      setSyncStartTime(now);
-      setIsPolling(true);
-      
+      setIsSyncing(true);
+      toast.loading('Syncing with Xero...', { id: 'sync-progress' });
+
       // Set a timeout for 5 minutes
       setTimeout(() => {
-        setIsPolling(false);
-        toast.error('Sync is taking longer than expected. Please check back later.', {
-          duration: 6000,
-        });
+        if (isSyncing) {
+          setIsSyncing(false);
+          toast.dismiss('sync-progress');
+          toast.error('Sync is taking longer than expected. Please check back later.', {
+            duration: 6000,
+          });
+        }
       }, 5 * 60 * 1000);
     },
     onError: (error) => {
@@ -36,58 +34,79 @@ export function SyncButton() {
     },
   });
 
-  // Load last sync timestamp on mount
+  // Load last sync timestamp from localStorage on mount
   useEffect(() => {
-    if (syncData?.lastSync) {
-      setLastSync(new Date(syncData.lastSync));
-      localStorage.setItem(LAST_SYNC_KEY, syncData.lastSync);
-    } else {
-      // Fallback to localStorage if server doesn't have it
-      const stored = localStorage.getItem(LAST_SYNC_KEY);
-      if (stored) {
-        setLastSync(new Date(stored));
-      }
+    const stored = localStorage.getItem(LAST_SYNC_KEY);
+    if (stored) {
+      setLastSync(new Date(stored));
     }
-  }, [syncData]);
+  }, []);
 
-  // Check if sync completed
+  // Subscribe to Supabase Realtime for sync_events
   useEffect(() => {
-    if (!isPolling || !syncData?.lastSync || !syncStartTime) return;
+    const supabase = createClient();
 
-    const completedTime = new Date(syncData.lastSync);
-    if (completedTime > syncStartTime) {
-      setIsPolling(false);
-      setLastSync(completedTime);
-      // Update localStorage for persistence
-      localStorage.setItem(LAST_SYNC_KEY, completedTime.toISOString());
-      
-      toast.success(
-        (t) => (
-          <div className="flex flex-col gap-2">
-            <span>Sync completed! Refresh the page to see updated data.</span>
-            <button
-              onClick={() => {
-                toast.dismiss(t.id);
-                window.location.reload();
-              }}
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors"
-            >
-              Refresh
-            </button>
-          </div>
-        ),
+    const channel = supabase
+      .channel('sync-notifications')
+      .on(
+        'postgres_changes',
         {
-          duration: 10000,
+          event: 'INSERT',
+          schema: 'public',
+          table: 'sync_events'
+        },
+        (payload) => {
+          // Sync completed - show toast
+          const now = new Date();
+          setLastSync(now);
+          setIsSyncing(false);
+          localStorage.setItem(LAST_SYNC_KEY, now.toISOString());
+
+          toast.dismiss('sync-progress');
+
+          const recordsSynced = payload.new?.records_synced;
+          const message = recordsSynced
+            ? `Sync completed! ${recordsSynced} records updated.`
+            : 'Sync completed!';
+
+          toast.success(
+            (t) => (
+              <div className="flex flex-col gap-2">
+                <span>{message} Refresh the page to see updated data.</span>
+                <button
+                  onClick={() => {
+                    toast.dismiss(t.id);
+                    window.location.reload();
+                  }}
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors"
+                >
+                  Refresh Now
+                </button>
+              </div>
+            ),
+            {
+              duration: 10000,
+            }
+          );
         }
-      );
-    }
-  }, [syncData, isPolling, syncStartTime]);
+      )
+      .subscribe();
+
+    channelRef.current = channel;
+
+    // Cleanup on unmount
+    return () => {
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+      }
+    };
+  }, []);
 
   const handleSync = () => {
     triggerSync.mutate();
   };
 
-  const isLoading = triggerSync.isPending || isPolling;
+  const isLoading = triggerSync.isPending || isSyncing;
 
   return (
     <>

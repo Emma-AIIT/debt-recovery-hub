@@ -1,10 +1,6 @@
 import { createTRPCRouter, publicProcedure } from "../trpc";
 import { env } from "~/env";
 
-// In-memory store for last sync timestamp (in production, use a database)
-// This is a simple solution - for production, consider using a database table
-let lastSyncTimestamp: Date | null = null;
-
 export const syncRouter = createTRPCRouter({
   trigger: publicProcedure.mutation(async () => {
     const webhookUrl = env.MAKE_SYNC_WEBHOOK_URL;
@@ -40,23 +36,5 @@ export const syncRouter = createTRPCRouter({
           : "Failed to trigger sync",
       );
     }
-  }),
-
-  getLastSync: publicProcedure.query(async () => {
-    // Return the last sync timestamp
-    // In production, this should query from a database
-    return {
-      lastSync: lastSyncTimestamp?.toISOString() ?? null,
-    };
-  }),
-
-  updateLastSync: publicProcedure.mutation(async () => {
-    // Update the last sync timestamp
-    // This is called by the webhook when sync completes
-    lastSyncTimestamp = new Date();
-    return {
-      success: true,
-      lastSync: lastSyncTimestamp.toISOString(),
-    };
   }),
 });
