@@ -97,7 +97,7 @@ export function SyncButton() {
     // Cleanup on unmount
     return () => {
       if (channelRef.current) {
-        supabase.removeChannel(channelRef.current);
+        void supabase.removeChannel(channelRef.current);
       }
     };
   }, []);
