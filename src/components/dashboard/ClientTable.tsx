@@ -193,16 +193,16 @@ export const ClientTable: FC<ClientTableProps> = ({ clients, onClientClick }) =>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
                         <span className={`inline-flex items-center justify-center w-8 h-8 rounded-lg text-sm font-semibold ${
-                          client.streak_weeks === 0
+                          client.streak_days === 0
                             ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                            : client.streak_weeks <= 2
+                            : client.streak_days <= 14
                               ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
                               : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
                         }`}>
-                          {client.streak_weeks}
+                          {client.streak_days}
                         </span>
-                        {client.streak_weeks > 0 && (
-                          <span className="text-[10px] text-[var(--color-text-faint)] uppercase tracking-wide">wks</span>
+                        {client.streak_days > 0 && (
+                          <span className="text-[10px] text-[var(--color-text-faint)] uppercase tracking-wide">days</span>
                         )}
                       </div>
                     </td>

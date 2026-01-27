@@ -62,16 +62,25 @@ export const webhooksRouter = createTRPCRouter({
       if (!client) throw new Error("Client not found");
       
       // Reset streak if payment reduces balance
-      const newStreak = input.newBalance < client.current_balance ? 0 : client.streak_weeks;
-      const newStatus = newStreak === 0 ? 'current' : client.status;
+      const newStreak = input.newBalance < client.current_balance ? 0 : client.streak_days;
+      // Calculate status based on day-based thresholds
+      const newStatus = newStreak === 0 ? 'current'
+        : newStreak <= 14 ? 'warning'
+        : newStreak <= 21 ? 'critical'
+        : 'suspended';
       
+      // Calculate week change (balance difference)
+      const weekChange = input.newBalance - client.current_balance;
+
       // Update client
       await supabase
         .from('clients')
         .update({
           previous_balance: client.current_balance,
           current_balance: input.newBalance,
-          streak_weeks: newStreak,
+          streak_days: newStreak,
+          week_change: weekChange,
+          last_balance_check_date: new Date().toISOString(),
           status: newStatus,
           last_payment_date: new Date().toISOString(),
         })

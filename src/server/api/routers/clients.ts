@@ -16,7 +16,7 @@ export const clientsRouter = createTRPCRouter({
       let query = supabase
         .from('clients')
         .select('*')
-        .order('streak_weeks', { ascending: false });
+        .order('streak_days', { ascending: false });
 
       if (input.status && input.status !== 'all') {
         query = query.eq('status', input.status);
@@ -41,7 +41,7 @@ export const clientsRouter = createTRPCRouter({
 
     const totalOutstanding = clients.reduce((sum, c) => sum + Number(c.current_balance), 0);
     const totalClients = clients.length;
-    const atRisk = clients.filter(c => c.streak_weeks >= 1 && c.streak_weeks <= 2).length;
+    const atRisk = clients.filter(c => c.streak_days >= 1 && c.streak_days <= 21).length;
     const suspended = clients.filter(c => c.status === 'suspended').length;
     
     // Calculate collection rate (simplified)

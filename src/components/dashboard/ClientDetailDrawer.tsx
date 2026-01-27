@@ -291,16 +291,16 @@ export const ClientDetailDrawer: FC<ClientDetailDrawerProps> = ({ clientId, onCl
                     <h3 className="text-[10px] font-semibold text-[var(--color-text-faint)] uppercase tracking-[0.2em] mb-2">Streak</h3>
                     <div className="flex items-center gap-2">
                       <span className={`text-2xl font-bold ${
-                        client.streak_weeks === 0 ? 'text-green-500' :
-                        client.streak_weeks <= 2 ? 'text-amber-500' :
+                        client.streak_days === 0 ? 'text-green-500' :
+                        client.streak_days <= 14 ? 'text-amber-500' :
                         'text-red-500'
                       }`}>
-                        {client.streak_weeks}
+                        {client.streak_days}
                       </span>
                       <div className="flex flex-col">
-                        <span className="text-xs text-[var(--color-text-muted)]">weeks</span>
-                        {client.streak_weeks >= 3 && (
-                          <span className="text-[10px] text-red-500/80">🔥 overdue</span>
+                        <span className="text-xs text-[var(--color-text-muted)]">days</span>
+                        {client.streak_days >= 15 && (
+                          <span className="text-[10px] text-red-500/80">overdue</span>
                         )}
                       </div>
                     </div>

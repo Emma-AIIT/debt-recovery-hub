@@ -7,7 +7,9 @@ export type Client = {
     company: string | null
     current_balance: number
     previous_balance: number
-    streak_weeks: number
+    streak_days: number
+    week_change: number
+    last_balance_check_date: string | null
     status: 'current' | 'warning' | 'critical' | 'suspended'
     last_payment_date: string | null
     last_contact_date: string | null
